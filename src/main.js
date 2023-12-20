@@ -12,8 +12,8 @@ import './assets/font/iconfont.css'
 //挂载axios
 Vue.prototype.$http = axios
 //设置访问根路径
-axios.defaults.baseURL = "http://10.129.191.152:9000"
-//axios.defaults.baseURL = "http://localhost:9000"
+//axios.defaults.baseURL = "http://10.129.191.152:9000"
+axios.defaults.baseURL = "http://localhost:9000"
 
 Vue.use(ElementUI)
 Vue.config.productionTip = false

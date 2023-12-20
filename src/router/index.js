@@ -8,7 +8,6 @@ import FileManage from '../components/card/FileManage.vue'
 import UserManage from '../components/card/UserManage.vue'
 import VisualChart from '../components/card/VisualChart.vue'
 import VisualMap from '../components/card/VisualMap.vue'
-import Information from '../components/card/Information.vue'
 import Feedback from '../components/Feedback.vue'
 import CodeManage from '@/components/card/CodeManage.vue'
 

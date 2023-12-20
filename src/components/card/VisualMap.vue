@@ -6,33 +6,35 @@
             <el-breadcrumb-item>灾情可视化</el-breadcrumb-item>
             <el-breadcrumb-item :to="{ path: '/home/' }">灾情可视化地图</el-breadcrumb-item>
         </el-breadcrumb>
-        <!--用户列表主体-->
-        <!-- 卡片视图区 -->
         <el-card>
-            <!-- 卡片视图区 -->
-            <el-card>
-                <div ref="myChart" id="myChart">
-                </div>
-            </el-card>
+            <div ref="myChart" id="myChart"></div>
         </el-card>
+
+
     </div>
 </template>
 
 <script>
 import * as echarts from "echarts"
 import { mapData } from "../card/mapData"
-import {ref} from 'vue'
+
 
 export default {
+    created() {
+    },
+    methods: {
+        async loadData() {
+            const { data: res } = await this.$http.get("admin/codeshow/list", {
+                params: this.queryInfo
+            });
+        },
+
+    },
     mounted() {
-        const data = ref()
-        const loadData =async()=>{
-            data.value = await this.$http.get("admin/codeshow/list" )
-            console.log(data.value);
-        }
         let myChart = echarts.init(this.$refs.myChart)
 
         echarts.registerMap("chinaMap", mapData)
+
 
         let option = {
             geo: {
@@ -67,6 +69,12 @@ export default {
             },
         };
 
+        let optino1 = {
+            xAxis: {},
+            yAxis: {},
+            grid: {},
+            series: [],
+        }
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
 
@@ -75,11 +83,20 @@ export default {
         })
     },
     data() {
-        return {}
-    },
-    methods: {
+        return {
+            //查询信息实体 
+            queryInfo: {
+                query: "",
+                page: 1,
+                limit: 5,
+            },
+            codeList: [],   //灾情码列表
+            total: 0,       //最大数据记录   
+            data: {
 
-    }
+            }
+        };
+    },
 
 }
 </script>
@@ -96,4 +113,5 @@ export default {
     height: 800px;
     //border: 1px solid red;
 }
+
 </style>

@@ -16,7 +16,7 @@
                     <el-col :span="10">
                         <!-- 搜索添加 -->
                         <el-input placeholder="请输入搜索内容" v-model="queryInfo.query" clearable @clear="getUserList">
-                            <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
+                            <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
                         </el-input>
                     </el-col>
                     <!--搜索按钮-->
@@ -33,11 +33,8 @@
                     <el-table-column label="操作">
                         <template slot-scope="scope">
                             <!-- 修改 -->
-                            <el-button type="primary" icon="el-icon-edit" size="mini"
-                                @click="showEditDialog(scope.row.id)"></el-button>
-                            <!-- 删除 -->
-                            <el-button type="danger" icon="el-icon-delete" size="mini"
-                                @click="deleteUser(scope.row.id)"></el-button>
+                            <el-button type="primary" icon="el-icon-edit" size="medium" @click="showEditDialog()">
+                            </el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -78,9 +75,13 @@
                 <el-form-item label="用户名" prop="userName">
                     <el-input v-model="editForm.userName"></el-input>
                 </el-form-item>
-                <!-- 密码 -->
-                <el-form-item label="密码" prop="passwd">
-                    <el-input v-model="editForm.passwd"></el-input>
+                <!-- 旧密码 -->
+                <el-form-item label="旧密码" prop="oldpassword">
+                    <el-input v-model="editForm.oldpassword"></el-input>
+                </el-form-item>
+                <!-- 新密码 -->
+                <el-form-item label="新密码" prop="newpassword">
+                    <el-input v-model="editForm.newpassword"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -124,7 +125,7 @@ export default {
             addFormRules: {
                 userName: [
                     { required: true, message: "请输入用户名", trigger: "blur" },
-                    { min: 5, max: 12, message: "长度在 5 到 12 个字符", trigger: "blur" }
+                    { min: 1, max: 12, message: "长度在 1 到 12 个字符", trigger: "blur" }
                 ],
                 passwd: [
                     { required: true, message: "请输入密码", trigger: "blur" },
@@ -133,6 +134,10 @@ export default {
             },
             // 修改用户表单验证规则
             editFormRules: {
+                userName: [
+                    { required: true, message: "请输入用户名", trigger: "blur" },
+                    { min: 1, max: 12, message: "长度在 1 到 12 个字符", trigger: "blur" }
+                ],
                 newpassword: [
                     { required: true, message: "请输入密码", trigger: "blur" },
                     { min: 5, max: 12, message: "长度在 5 到 12 个字符", trigger: "blur" }
@@ -174,9 +179,15 @@ export default {
                 console.log(this.addForm.userName)
 
                 // 发起请求 
-                const { data: res } = await this.$http.post("/user/register", this.addForm);
+                const formData = new FormData();
+                formData.append('userName', this.addForm.userName);
+                formData.append('passwd', this.addForm.passwd);
+                console.log(formData);
+                const { data: res } = await this.$http.post("user/register", formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
 
-                if (res != "success") {
+                if (res.resultCode != "200") {
                     return this.$message.error("操作失败！！！");
                 }
                 this.$message.success("操作成功！！！");
@@ -187,16 +198,7 @@ export default {
             });
         },
         // 展示修改框
-        async showEditDialog(id) {
-            const { data: res } = await this.$http.get("/user/list", { params: this.id });
-            //console.log(res);
-            if (res != "success") {
-                return this.$message.error("操作失败！！！");
-            }
-            this.$message.success("操作成功！！！");
-
-            this.editForm = res;
-
+        async showEditDialog() {
             this.editDialogVisible = true;  //开启对话框-修改信息
         },
         // 关闭窗口
@@ -209,36 +211,30 @@ export default {
                 console.log(valid);
                 if (!valid) return;
                 // 发起请求
-                const { data: res } = await this.$http.put("user/changepwd", this.editForm.newpassword);
+                const formData = new FormData();
+                formData.append('userName', this.editForm.userName);
+                formData.append('oldpassword', this.editForm.oldpassword);
+                formData.append('newpassword', this.editForm.newpassword);
+                   
+                console.log(formData);
+
+                const { data: res } = await this.$http.post("user/changepwd", formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
                 console.log(res);
-                if (res != "success") return this.$message.error("操作失败！！！");
+
+                if (res.resultCode != "200") return this.$message.error("操作失败！！！");
                 this.$message.success("操作成功！！！");
+
                 //隐藏
                 this.editDialogVisible = false;
                 this.getUserList();
             });
         },
-        // 删除按钮
-        async deleteUser(id) {
-            // 弹框
-            const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).catch(err => err)
-            // 成功删除为confirm 取消为cancel
-            if (confirmResult != 'confirm') {
-                return this.$message.info("已取消删除");
-            }
-            /*
-            const { data: res } = await this.$http.delete("deleteUser?id=" + id);
-            if (res != "success") {
-                return this.$message.error("操作失败！！！");
-            }
-            */
-            this.$message.success("操作成功！！！");
-            this.getUserList();
-        },
+        //搜索指定用户
+        async search() {
+
+        }
     }
 }
 
